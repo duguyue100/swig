@@ -162,13 +162,17 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	cpp17_nested_namespaces \
+	cpp17_nspace_nested_namespaces \
 	curiously_recurring_template_pattern \
 	default_args \
+	default_arg_expressions \
 	default_arg_values \
 	default_constructor \
 	defvalue_constructor \
 	derived_byvalue \
 	derived_nested \
+	destructor_methodmodifiers \
 	destructor_reprotected \
 	director_abstract \
 	director_alternating \
@@ -182,6 +186,7 @@ CPP_TEST_CASES += \
 	director_enum \
 	director_exception \
 	director_exception_catches \
+	director_exception_nothrow \
 	director_extend \
 	director_finalizer \
 	director_frob \
@@ -193,6 +198,7 @@ CPP_TEST_CASES += \
 	director_nspace_director_name_collision \
 	director_overload \
 	director_overload2 \
+	director_ownership \
 	director_pass_by_value \
 	director_primitives \
 	director_property \
@@ -350,7 +356,6 @@ CPP_TEST_CASES += \
 	redefined_not \
 	refcount \
 	reference_global_vars \
-	register_par \
 	rename1 \
 	rename2 \
 	rename3 \
@@ -490,6 +495,7 @@ CPP_TEST_CASES += \
 	throw_exception \
 	typedef_array_member \
 	typedef_class \
+	typedef_classforward_same_name \
 	typedef_funcptr \
 	typedef_inherit \
 	typedef_mptr \
@@ -592,6 +598,31 @@ CPP11_TEST_BROKEN = \
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
+# Doxygen support test cases: can only be used with languages supporting
+# Doxygen comment translation, currently only Python and Java.
+python_HAS_DOXYGEN := 1
+java_HAS_DOXYGEN := 1
+
+$(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
+
+ifdef HAS_DOXYGEN
+DOXYGEN_TEST_CASES += \
+	doxygen_alias \
+	doxygen_basic_notranslate \
+	doxygen_basic_translate \
+	doxygen_ignore \
+	doxygen_misc_constructs \
+	doxygen_nested_class \
+	doxygen_parsing \
+	doxygen_parsing_enums \
+	doxygen_translate \
+	doxygen_translate_all_tags \
+	doxygen_translate_links \
+
+$(DOXYGEN_TEST_CASES:=.cpptest): SWIGOPT += -doxygen
+
+CPP_TEST_CASES += $(DOXYGEN_TEST_CASES)
+endif
 
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
@@ -669,6 +700,7 @@ C_TEST_CASES += \
 	preproc_defined \
 	preproc_include \
 	preproc_line_file \
+	register_par \
 	ret_by_value \
 	simple_array \
 	sizeof_pointer \
@@ -676,6 +708,7 @@ C_TEST_CASES += \
 	string_simple \
 	struct_rename \
 	struct_initialization \
+	typedef_classforward_same_name \
 	typedef_struct \
 	typemap_subst \
 	union_parameter \
@@ -738,6 +771,10 @@ check-c: $(C_TEST_CASES:=.ctest)
 check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
+
+ifdef HAS_DOXYGEN
+check-doxygen: $(DOXYGEN_TEST_CASES:=.cpptest)
+endif
 
 check-failing-test = \
 	$(MAKE) -s $1.$2 >/dev/null 2>/dev/null && echo "Failing test $1 passed."

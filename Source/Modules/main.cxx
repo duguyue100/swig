@@ -65,7 +65,7 @@ static const char *usage1 = (const char *) "\
      -copyctor       - Automatically generate copy constructors wherever possible\n\
      -cpperraswarn   - Treat the preprocessor #error statement as #warning (default)\n\
      -cppext <ext>   - Change file extension of generated C++ files to <ext>\n\
-                       (default is cxx, except for PHP5 which uses cpp)\n\
+                       (default is cxx)\n\
      -copyright      - Display copyright notices\n\
      -debug-classes  - Display information about the classes found in the interface\n\
      -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
@@ -159,6 +159,10 @@ is equivalent to: \n\
 \n\
   $ swig -Wall -python interface.i \n\
 \n\
+Arguments may also be passed in a file, separated by whitespace. For example:\n\
+\n\
+  $ echo \"-Wall -python interface.i\" > args.txt\n\
+  $ swig @args.txt\n\
 \n";
 
 // Local variables
