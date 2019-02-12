@@ -96,6 +96,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=mzscheme
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=ocaml
       sudo: required
       dist: trusty
@@ -132,6 +137,16 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=php VER=7.1
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=php VER=7.2
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=php VER=7.3
       sudo: required
       dist: trusty
     - compiler: gcc
@@ -174,6 +189,11 @@ matrix:
       env: SWIGLANG=python SWIG_FEATURES=-builtin
       sudo: required
       dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=python SWIG_FEATURES="-builtin -O"
+      sudo: required
+      dist: trusty
     - os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP11=1
       sudo: required
@@ -199,6 +219,11 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=python SWIG_FEATURES="-builtin -O" PY3=3 VER=3.7
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.7 SWIGOPTPY3=
       sudo: required
       dist: trusty
@@ -210,11 +235,6 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O PY3=3 VER=3.7
-      sudo: required
-      dist: trusty
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-classic
       sudo: required
       dist: trusty
     - compiler: gcc
@@ -357,10 +377,10 @@ matrix:
       env: SWIGLANG=tcl
 
   allow_failures:
-    # Lots of failing tests currently
+    # Deprecated functions causing build failure since upgrade from Node v10.11.0 to v10.12.0
     - compiler: gcc
       os: linux
-      env: SWIGLANG=ocaml
+      env: SWIGLANG=javascript ENGINE=node VER=10 CPP11=1
       sudo: required
       dist: trusty
     # Sometimes hits the Travis 50 minute time limit
@@ -369,10 +389,15 @@ matrix:
       env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
       sudo: required
       dist: trusty
-    # Not quite working yet
+    # Experimental languages
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-O PY3=3
+      env: SWIGLANG=mzscheme
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ocaml
       sudo: required
       dist: trusty
 

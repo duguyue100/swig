@@ -82,17 +82,6 @@ swig_varlink_str(swig_varlinkobject *v) {
   return str;
 }
 
-SWIGINTERN int
-swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
-  PyObject *str = swig_varlink_str(v);
-  const char *tmp = SWIG_Python_str_AsChar(str);
-  fprintf(fp,"Swig global variables ");
-  fprintf(fp,"%s\n", tmp ? tmp : "Invalid global variable");
-  SWIG_Python_str_DelForPy3(tmp);
-  Py_DECREF(str);
-  return 0;
-}
-
 SWIGINTERN void
 swig_varlink_dealloc(swig_varlinkobject *v) {
   swig_globalvar *var = v->vars;
@@ -151,11 +140,11 @@ swig_varlink_type(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                  /* ob_size */
 #endif
-      (char *)"swigvarlink",              /* tp_name */
+      "swigvarlink",                      /* tp_name */
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
-      (printfunc) swig_varlink_print,     /* tp_print */
+      0,                                  /* tp_print */
       (getattrfunc) swig_varlink_getattr, /* tp_getattr */
       (setattrfunc) swig_varlink_setattr, /* tp_setattr */
       0,                                  /* tp_compare */
@@ -208,14 +197,14 @@ SWIG_Python_newvarlink(void) {
 }
 
 SWIGINTERN void 
-SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
+SWIG_Python_addvarlink(PyObject *p, const char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v = (swig_varlinkobject *) p;
   swig_globalvar *gv = (swig_globalvar *) malloc(sizeof(swig_globalvar));
   if (gv) {
     size_t size = strlen(name)+1;
     gv->name = (char *)malloc(size);
     if (gv->name) {
-      strncpy(gv->name,name,size);
+      memcpy(gv->name, name, size);
       gv->get_attr = get_attr;
       gv->set_attr = set_attr;
       gv->next = v->vars;
@@ -226,9 +215,11 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
 
 SWIGINTERN PyObject *
 SWIG_globals(void) {
-  static PyObject *_SWIG_globals = 0; 
-  if (!_SWIG_globals) _SWIG_globals = SWIG_newvarlink();  
-  return _SWIG_globals;
+  static PyObject *globals = 0;
+  if (!globals) {
+    globals = SWIG_newvarlink();
+  }
+  return globals;
 }
 
 /* -----------------------------------------------------------------------------
@@ -307,6 +298,64 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
   }
 } 
 
+/* -----------------------------------------------------------------------------
+ * Method creation and docstring support functions
+ * ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * Function to find the method definition with the correct docstring for the
+ * proxy module as opposed to the low-level API
+ * ----------------------------------------------------------------------------- */
+
+SWIGINTERN PyMethodDef *SWIG_PythonGetProxyDoc(const char *name) {
+  /* Find the function in the modified method table */
+  size_t offset = 0;
+  int found = 0;
+  while (SwigMethods_proxydocs[offset].ml_meth != NULL) {
+    if (strcmp(SwigMethods_proxydocs[offset].ml_name, name) == 0) {
+      found = 1;
+      break;
+    }
+    offset++;
+  }
+  /* Use the copy with the modified docstring if available */
+  return found ? &SwigMethods_proxydocs[offset] : NULL;
+}
+
+/* -----------------------------------------------------------------------------
+ * Wrapper of PyInstanceMethod_New() used in Python 3
+ * It is exported to the generated module, used for -fastproxy
+ * ----------------------------------------------------------------------------- */
+
+SWIGINTERN PyObject *SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func) {
+  if (PyCFunction_Check(func)) {
+    PyCFunctionObject *funcobj = (PyCFunctionObject *)func;
+    PyMethodDef *ml = SWIG_PythonGetProxyDoc(funcobj->m_ml->ml_name);
+    if (ml)
+      func = PyCFunction_NewEx(ml, funcobj->m_self, funcobj->m_module);
+  }
+#if PY_VERSION_HEX >= 0x03000000
+  return PyInstanceMethod_New(func);
+#else
+  return PyMethod_New(func, NULL, NULL);
+#endif
+}
+
+/* -----------------------------------------------------------------------------
+ * Wrapper of PyStaticMethod_New()
+ * It is exported to the generated module, used for -fastproxy
+ * ----------------------------------------------------------------------------- */
+
+SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func) {
+  if (PyCFunction_Check(func)) {
+    PyCFunctionObject *funcobj = (PyCFunctionObject *)func;
+    PyMethodDef *ml = SWIG_PythonGetProxyDoc(funcobj->m_ml->ml_name);
+    if (ml)
+      func = PyCFunction_NewEx(ml, funcobj->m_self, funcobj->m_module);
+  }
+  return PyStaticMethod_New(func);
+}
+
 #ifdef __cplusplus
 }
 #endif
@@ -326,11 +375,12 @@ SWIGEXPORT
   void
 #endif
 SWIG_init(void) {
-  PyObject *m, *d, *md;
+  PyObject *m, *d, *md, *globals;
+
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
-    (char *) SWIG_name,
+    SWIG_name,
     NULL,
     -1,
     SwigMethods,
@@ -379,10 +429,9 @@ SWIG_init(void) {
   assert(metatype);
 #endif
 
+  (void)globals;
+
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
-#ifdef SWIG_PYTHON_BUILD_NONE
-  SWIG_Py_None();
-#endif
   SWIG_This();
   SWIG_Python_TypeCache();
   SwigPyPacked_type();
@@ -396,7 +445,7 @@ SWIG_init(void) {
 #if PY_VERSION_HEX >= 0x03000000
   m = PyModule_Create(&SWIG_module);
 #else
-  m = Py_InitModule((char *) SWIG_name, SwigMethods);
+  m = Py_InitModule(SWIG_name, SwigMethods);
 #endif
 
   md = d = PyModule_GetDict(m);

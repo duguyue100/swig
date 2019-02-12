@@ -162,8 +162,10 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	cpp14_binary_integer_literals \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
+	cpp17_u8_char_literals \
 	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_expressions \
@@ -246,6 +248,7 @@ CPP_TEST_CASES += \
 	friends \
 	friends_template \
 	funcptr_cpp \
+	functors \
 	fvirtual \
 	global_namespace \
 	global_ns_arg \
@@ -313,6 +316,7 @@ CPP_TEST_CASES += \
 	namespace_virtual_method \
 	nspace \
 	nspace_extend \
+	native_directive \
 	naturalvar \
 	naturalvar_more \
 	naturalvar_onoff \
@@ -320,6 +324,7 @@ CPP_TEST_CASES += \
 	nested_directors \
 	nested_comment \
 	nested_ignore \
+	nested_in_template \
 	nested_scope \
 	nested_template_base \
 	nested_workaround \
@@ -338,6 +343,7 @@ CPP_TEST_CASES += \
 	overload_extend \
 	overload_method \
 	overload_numeric \
+	overload_null \
 	overload_polymorphic \
 	overload_rename \
 	overload_return_type \
@@ -718,12 +724,12 @@ C_TEST_CASES += \
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
-	imports \
 	import_stl \
-	packageoption \
+	imports \
 	mod \
-	template_typedef_import \
 	multi_import \
+	packageoption \
+	template_typedef_import \
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
