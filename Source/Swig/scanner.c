@@ -1160,6 +1160,8 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if (isdigit(c))
 	state = 84;
+      else if ((c == 'e') || (c == 'E'))
+	state = 82;
       else if ((c == 'x') || (c == 'X'))
 	state = 85;
       else if ((c == 'b') || (c == 'B'))
@@ -1181,6 +1183,10 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if (isdigit(c))
 	state = 84;
+      else if (c == '.')
+	state = 81;
+      else if ((c == 'e') || (c == 'E'))
+	state = 82;
       else if ((c == 'l') || (c == 'L')) {
 	state = 87;
       } else if ((c == 'u') || (c == 'U')) {
@@ -1196,6 +1202,10 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if (isxdigit(c))
 	state = 85;
+      else if (c == '.') /* hexadecimal float */
+	state = 860;
+      else if ((c == 'p') || (c == 'P')) /* hexadecimal float */
+	state = 820;
       else if ((c == 'l') || (c == 'L')) {
 	state = 87;
       } else if ((c == 'u') || (c == 'U')) {
@@ -1220,7 +1230,22 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       }
       break;
-
+    case 860:
+      /* hexadecimal float */
+      if ((c = nextchar(s)) == 0) {
+	Swig_error(cparse_file, cparse_start_line, "Hexadecimal floating literals require an exponent\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      if (isxdigit(c))
+	state = 860;
+      else if ((c == 'p') || (c == 'P'))
+	state = 820;
+      else {
+	retract(s, 2);
+	Swig_error(cparse_file, cparse_start_line, "Hexadecimal floating literals require an exponent\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      break;
     case 86:
       /* Rest of floating point number */
 

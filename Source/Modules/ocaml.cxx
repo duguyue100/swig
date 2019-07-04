@@ -473,7 +473,6 @@ public:
 
     Wrapper *f = NewWrapper();
     String *proc_name = NewString("");
-    String *source = NewString("");
     String *target = NewString("");
     String *arg = NewString("");
     String *cleanup = NewString("");
@@ -553,7 +552,18 @@ public:
 
     numargs = emit_num_arguments(l);
     numreq = emit_num_required(l);
-
+    if (!isOverloaded) {
+      if (numargs > 0) {
+	if (numreq > 0) {
+	  Printf(f->code, "if (caml_list_length(args) < %d || caml_list_length(args) > %d) {\n", numreq, numargs);
+	} else {
+	  Printf(f->code, "if (caml_list_length(args) > %d) {\n", numargs);
+	}
+	Printf(f->code, "caml_invalid_argument(\"Incorrect number of arguments passed to '%s'\");\n}\n", iname);
+      } else {
+	Printf(f->code, "if (caml_list_length(args) > 0) caml_invalid_argument(\"'%s' takes no arguments\");\n", iname);
+      }
+    }
     Printf(f->code, "swig_result = Val_unit;\n");
 
     // Now write code to extract the parameters (this is super ugly)
@@ -569,10 +579,9 @@ public:
       pt = SwigType_typedef_qualified(pt);
 
       // Produce names of source and target
-      Clear(source);
       Clear(target);
       Clear(arg);
-      Printf(source, "caml_list_nth(args,%d)", i);
+      String *source = NewStringf("caml_list_nth(args,%d)", i);
       Printf(target, "%s", ln);
       Printv(arg, Getattr(p, "name"), NIL);
 
@@ -596,6 +605,7 @@ public:
       if (i >= numreq) {
 	Printf(f->code, "}\n");
       }
+      Delete(source);
     }
 
     /* Insert constraint checking code */
@@ -741,7 +751,7 @@ public:
 	Printv(df->code,
 	       "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 	       "for( i = 0; i < argc; i++ ) {\n" "  argv[i] = caml_list_nth(args,i);\n" "}\n", NIL);
-	Printv(df->code, dispatch, "\n", NIL);
+	Printv(df->code, dispatch, "\nfree(argv);\n", NIL);
 	Node *sibl = n;
 	while (Getattr(sibl, "sym:previousSibling"))
 	  sibl = Getattr(sibl, "sym:previousSibling");
@@ -776,7 +786,6 @@ public:
       Printf(f_mlibody, "val %s : c_obj -> c_obj\n", mangled_name);
 
     Delete(proc_name);
-    Delete(source);
     Delete(target);
     Delete(arg);
     Delete(outarg);
@@ -1855,9 +1864,9 @@ public:
   }
 
   String *runtimeCode() {
-    String *s = Swig_include_sys("ocaml.swg");
+    String *s = Swig_include_sys("ocamlrun.swg");
     if (!s) {
-      Printf(stderr, "*** Unable to open 'ocaml.swg'\n");
+      Printf(stderr, "*** Unable to open 'ocamlrun.swg'\n");
       s = NewString("");
     }
     return s;

@@ -1365,7 +1365,7 @@ to accomplish this in SWIG.  This library provides support for a few common tech
 </li>
 
 <li>If used in C++, this library uses <tt>new</tt> and <tt>delete []</tt> for memory
-allocation.  If using ANSI C, the library uses <tt>malloc()</tt> and <tt>free()</tt>.
+allocation.  If using C, the library uses <tt>malloc()</tt> and <tt>free()</tt>.
 </li>
 
 <li>Rather than manipulating <tt>char *</tt> directly, you might consider using a special string
@@ -1581,8 +1581,8 @@ std::vector&lt;double&gt; half(const std::vector&lt;double&gt;&amp; v) {
 }
 
 void halve_in_place(std::vector&lt;double&gt;&amp; v) {
-  std::transform(v.begin(), v.end(), v.begin(),
-                 std::bind2nd(std::divides&lt;double&gt;(), 2.0));
+  for (std::vector&lt;double&gt;::iterator it = v.begin(); it != v.end(); ++it)
+    *it /= 2.0;
 }
 </pre>
 </div>

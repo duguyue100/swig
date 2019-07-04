@@ -707,40 +707,13 @@ public:
 	Printf(f_shadow, "_swig_new_static_method = %s.SWIG_PyStaticMethod_New\n", module);
       }
 
-      {
-	// Python-2.2 object hack
-	Printv(f_shadow,
-	       "\n", "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
-	       tab4, "if name == \"thisown\":\n", tab8, "return self.this.own(value)\n",
-	       tab4, "if name == \"this\":\n", tab8, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
-#ifdef USE_THISOWN
-	       tab4, tab8, "if hasattr(value,\"thisown\"):\n", tab8, tab8, "self.__dict__[\"thisown\"] = value.thisown\n", tab4, tab8, "del value.thisown\n",
-#endif
-	       tab4, tab8, "return\n", tab4, "method = class_type.__swig_setmethods__.get(name, None)\n", tab4, "if method:\n", tab4, tab4, "return method(self, value)\n",
-#ifdef USE_THISOWN
-	       tab4, "if not static or name == \"thisown\":\n",
-#else
-	       tab4, "if not static:\n",
-#endif
-	       NIL);
-	Printv(f_shadow, tab4, tab4, "object.__setattr__(self, name, value)\n", NIL);
-	Printv(f_shadow,
-	       tab4, "else:\n",
-	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
-	        "\n", "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
-
-	Printv(f_shadow,
-	       "\n", "def _swig_getattr(self, class_type, name):\n",
-	       tab4, "if name == \"thisown\":\n", tab8, "return self.this.own()\n",
-	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
-	       tab4, "if method:\n", tab8, "return method(self)\n",
-	       tab4, "raise AttributeError(\"'%s' object has no attribute '%s'\" % (class_type.__name__, name))\n\n", NIL);
-
-	Printv(f_shadow,
-	        "\n", "def _swig_repr(self):\n",
-	       tab4, "try:\n", tab8, "strthis = \"proxy of \" + self.this.__repr__()\n",
-	       tab4, "except __builtin__.Exception:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
-      }
+      Printv(f_shadow, "\n",
+	     "def _swig_repr(self):\n",
+	     tab4, "try:\n",
+	     tab4, tab4, "strthis = \"proxy of \" + self.this.__repr__()\n",
+	     tab4, "except __builtin__.Exception:\n",
+	     tab4, tab4, "strthis = \"\"\n",
+	     tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
       Printv(f_shadow,  "\n",
 	     "def _swig_setattr_nondynamic_instance_variable(set):\n",
@@ -1755,7 +1728,7 @@ public:
 	if (new_value) {
 	  value = new_value;
 	} else {
-	  // Even if the value is not representable in the target language, still use it in the documentaiton, for compatibility with the previous SWIG versions
+	  // Even if the value is not representable in the target language, still use it in the documentation, for compatibility with the previous SWIG versions
 	  // and because it can still be useful to see the C++ expression there.
 	  Node *lookup = Swig_symbol_clookup(value, 0);
 	  if (lookup)
@@ -2187,7 +2160,7 @@ public:
    * is_real_overloaded()
    *
    * Check if the function is overloaded, but not just have some
-   * siblings generated due to the original function have 
+   * siblings generated due to the original function having
    * default arguments.
    * ------------------------------------------------------------ */
   bool is_real_overloaded(Node *n) {
@@ -2224,7 +2197,7 @@ public:
       n = nn;
 
     Parm *parms = Getattr(n, "parms");
-    bool varargs = parms ? emit_isvarargs(parms) : 0;
+    int varargs = parms ? emit_isvarargs(parms) : 0;
 
     /* We prefer to explicitly list all parameters of the C function in the
        generated Python code as this makes the function more convenient to use,
@@ -2426,7 +2399,7 @@ public:
   void add_method(String *name, String *function, int kw, Node *n = 0, int funpack = 0, int num_required = -1, int num_arguments = -1) {
     String * meth_str = NewString("");
     if (!kw) {
-      if (n && funpack) {
+      if (funpack) {
 	if (num_required == 0 && num_arguments == 0) {
 	  Printf(meth_str, "\t { \"%s\", %s, METH_NOARGS, ", name, function);
 	} else if (num_required == 1 && num_arguments == 1) {
@@ -2689,7 +2662,6 @@ public:
     bool add_self = builtin_self && (!builtin_ctor || director_class);
     bool builtin_getter = (builtin && GetFlag(n, "memberget"));
     bool builtin_setter = (builtin && GetFlag(n, "memberset") && !builtin_getter);
-    bool over_varargs = false;
     char const *self_param = builtin ? "self" : "SWIGUNUSEDPARM(self)";
     char const *wrap_return = builtin_ctor ? "int " : "PyObject *";
     String *linkage = NewString("SWIGINTERN ");
@@ -2765,22 +2737,7 @@ public:
       }
     }
 
-    if (overname) {
-      String *over_varargs_attr = Getattr(n, "python:overvarargs");
-      if (!over_varargs_attr) {
-	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling")) {
-	  if (emit_isvarargs(Getattr(sibling, "parms"))) {
-	    over_varargs = true;
-	    break;
-	  }
-	}
-	over_varargs_attr = NewString(over_varargs ? "1" : "0");
-	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling"))
-	  Setattr(sibling, "python:overvarargs", over_varargs_attr);
-      }
-      if (Strcmp(over_varargs_attr, "0") != 0)
-	over_varargs = true;
-    }
+    bool over_varargs = emit_isvarargs_function(n);
 
     int funpack = fastunpack && !varargs && !over_varargs && !allow_kwargs;
     int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);
@@ -3608,11 +3565,7 @@ public:
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
         Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
         Printf(f_wrappers, tab2 "PyObject *d;\n");
-	if (fastunpack) {
-	  Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
-	} else {
-	  Printf(f_wrappers, tab2 "if (!PyArg_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
-	}
+	Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
         Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
         Printf(f_wrappers, tab2 "if (!d) return NULL;\n");
         Printf(f_wrappers, tab2 "%s\n", tm);
@@ -3621,7 +3574,7 @@ public:
 
         // Register the method in SwigMethods array
 	String *cname = NewStringf("%s_swigconstant", iname);
-	add_method(cname, cname, 0);
+	add_method(cname, cname, 0, 0, 1, 1, 1);
 	Delete(cname);
       } else {
         Printf(f_init, "%s\n", tm);
@@ -4526,16 +4479,12 @@ public:
       } else {
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers, "  PyObject *obj;\n", NIL);
-	if (fastunpack) {
-	  Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
-	} else {
-	  Printv(f_wrappers, "  if (!PyArg_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
-	}
+	Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
 
 	Printv(f_wrappers,
 	       "  SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct), ", SWIG_NewClientData(obj));\n", "  return SWIG_Py_Void();\n", "}\n\n", NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
-	add_method(cname, cname, 0);
+	add_method(cname, cname, 0, 0, 1, 1, 1);
 	Delete(cname);
       }
       Delete(smart);
