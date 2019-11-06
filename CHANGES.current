@@ -4,36 +4,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 4.0.1 (in progress)
+Version 4.0.2 (in progress)
 ===========================
 
-2019-06-28: wsfulton
-            [MzScheme, OCaml] #1559 $arg and $input were incorrectly substituted in the
-            argout typemap when two or more arguments were present.
-
-2019-06-24: wsfulton
-            [Python, Ruby] #1538 Remove the UnknownExceptionHandler class in order to be
-            C++17 compliant as it uses std::unexpected_handler which was removed in C++17.
-            This class was intended for director exception handling but was never used by
-            SWIG and was never documented.
-
-            *** POTENTIAL INCOMPATIBILITY ***
-
-2019-06-06: bkotzz
-            [Java] #1552 Improve performance in Java std::vector constructor wrapper that takes
-            a native Java array as input.
-
-2019-06-03: olly
-	    [Python] Fix regression in implicit_conv handling of tuples,
-	    introduced in SWIG 4.0.0.  Fixes #1553, reported by Alexandre
-	    Duret-Lutz.
-
-2019-05-24: wsfulton
-            [Octave] Fix detection of Octave on MacOS.
-
-2019-05-24: opoplawski
-            [Octave] #1522 Adapt OCTAVE_LDFLAGS for Octave 5.1.
-
-2019-05-22: ferdynator
-	    [PHP] #1528 Don't add a closing '?>' PHP tag to generated files.
-	    PSR-2 says it MUST be omitted for files containing only PHP.
+2019-11-01: wsfulton
+            [Python] #1595 Fix bug in support for keyword arguments (kwargs feature or -keyword)
+            when using -builtin. The fix is in the argument error checking when wrapping zero
+            argument constructors only.

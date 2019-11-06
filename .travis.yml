@@ -43,6 +43,10 @@ matrix:
       env: SWIGLANG= GCC=8
       sudo: required
       dist: xenial
+    - os: linux
+      env: SWIGLANG= GCC=9
+      sudo: required
+      dist: xenial
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
@@ -318,11 +322,6 @@ matrix:
       env: SWIGLANG=java CPP11=1
       sudo: required
       dist: xenial
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.4 CPP11=1
-      sudo: required
-      dist: trusty
     - os: linux
       env: SWIGLANG=python CPP11=1
       sudo: required
@@ -381,6 +380,18 @@ matrix:
       dist: xenial
     - os: linux
       env: SWIGLANG=python GCC=8 CPP17=1 PY3=3 VER=3.7
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG=csharp GCC=9 CPP17=1
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG=java GCC=9 CPP17=1
+      sudo: required
+      dist: xenial
+    - os: linux
+      env: SWIGLANG=python GCC=9 CPP17=1 PY3=3 VER=3.7
       sudo: required
       dist: xenial
     - compiler: gcc
