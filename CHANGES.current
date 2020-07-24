@@ -4,10 +4,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 4.0.2 (in progress)
+Version 4.1.0 (in progress)
 ===========================
 
-2019-11-01: wsfulton
-            [Python] #1595 Fix bug in support for keyword arguments (kwargs feature or -keyword)
-            when using -builtin. The fix is in the argument error checking when wrapping zero
-            argument constructors only.
+2020-06-14: ZackerySpytz
+            #1642 #1809 Fix virtual comparison operators in director classes - remove incorrect
+            space in the function name, for example, operator= = is now operator==.
